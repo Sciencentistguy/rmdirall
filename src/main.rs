@@ -1,23 +1,21 @@
+use clap::Parser;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
-use clap::Parser;
 
 fn main() {
     let args = Args::parse();
     go(&args.path).unwrap();
 }
 
-fn go(dir: &Path) -> std::io::Result<usize> {
-    let mut x = 0;
+fn go(dir: &Path) -> std::io::Result<()> {
     for entry in std::fs::read_dir(dir)? {
         let entry = entry?;
         if entry.metadata()?.is_dir() {
             let path = entry.path();
-            x += go(&path)?;
+            go(&path)?;
             match std::fs::remove_dir(&path) {
                 Ok(_) => {
                     eprintln!("Removed empty folder {}", path.display());
-                    x += 1;
                 }
                 Err(e) => match e.kind() {
                     ErrorKind::DirectoryNotEmpty => {}
@@ -26,7 +24,7 @@ fn go(dir: &Path) -> std::io::Result<usize> {
             }
         }
     }
-    Ok(x)
+    Ok(())
 }
 
 /// Removes all empty directories, recursively
